@@ -15,10 +15,10 @@ import (
 	"golang.org/x/image/font/opentype"
 )
 
-var exampleString = "SuperSecretPassword99"
+var exampleString = "SuperSecretTextHere"
 var charSet string = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ "
-var numLetters int = 37
-var bAmount int = 7
+var numLetters int = len(exampleString) - 1
+var bAmount int = 6
 var iSizeY int = 32
 var iSizeX int = 315
 
@@ -55,7 +55,7 @@ func main() {
 	strImg.SetFontFace(face)
 	makeExampleImage()
 
-	inputImgData, _ := os.Open("test.png")
+	inputImgData, _ := os.Open("input.png")
 	defer inputImgData.Close()
 	src, _, err = image.Decode(inputImgData)
 
@@ -326,7 +326,7 @@ func makeExampleImage() {
 	//strImgBlur = blur.Gaussian(strImg.Image(), float64(bAmount))
 	strImgBlur = song2.GaussianBlur(strImg.Image(), float64(bAmount))
 
-	name := "test.png"
+	name := "input.png"
 	blah, _ := os.Create(name)
 	png.Encode(blah, strImgBlur)
 	blah.Close()
