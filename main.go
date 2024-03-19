@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image"
 	"image/png"
@@ -9,6 +10,7 @@ import (
 	"os"
 
 	"github.com/fogleman/gg"
+	"github.com/matsuyoshi30/song2"
 	"github.com/nfnt/resize"
 
 	"golang.org/x/image/font"
@@ -18,7 +20,7 @@ import (
 var exampleString = "SuperSecretTextHere"
 var charSet string = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ "
 var numLetters int = len(exampleString) - 1
-var bAmount int = 15
+var bAmount *int
 var iSizeY int = 32
 var iSizeX int = 315
 
@@ -33,8 +35,13 @@ var yos int = 0
 var strImg *gg.Context
 var src image.Image
 var face font.Face
+var doBlur *bool
 
 func main() {
+	doBlur = flag.Bool("blur", false, "blur instead of pixelate")
+	bAmount = flag.Int("amount", 15, "amount to pixelate or blur")
+	flag.Parse()
+
 	fdata, err := ioutil.ReadFile("SF-Mono-Font-master/SFMono-Regular.otf")
 	if err != nil {
 		log.Fatal(err)
@@ -290,8 +297,12 @@ func testImage(str string, c string) {
 	strImg.Clear()
 	strImg.SetRGB(0, 0, 0)
 	strImg.DrawStringAnchored(str, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
-	//outImg := song2.GaussianBlur(strImg.Image(), float64(bAmount))
-	outImg := pixelate(strImg, bAmount)
+	var outImg image.Image
+	if *doBlur {
+		outImg = song2.GaussianBlur(strImg.Image(), float64(*bAmount))
+	} else {
+		outImg = pixelate(strImg, *bAmount)
+	}
 
 	var tscore uint64 = 0
 	for x := 0; x < iSizeX; x++ {
@@ -329,8 +340,12 @@ func makeExampleImage() {
 	strImg.SetRGB(0, 0, 0)
 	strImg.DrawStringAnchored(exampleString, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
 	numLetters = len(exampleString)
-	//outImg := song2.GaussianBlur(strImg.Image(), float64(bAmount))
-	outImg := pixelate(strImg, bAmount)
+	var outImg image.Image
+	if *doBlur {
+		outImg = song2.GaussianBlur(strImg.Image(), float64(*bAmount))
+	} else {
+		outImg = pixelate(strImg, *bAmount)
+	}
 
 	name := "input.png"
 	blah, _ := os.Create(name)
