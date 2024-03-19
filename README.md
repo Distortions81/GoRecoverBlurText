@@ -6,4 +6,4 @@ Orignal image:<br>
 Pixelated image that was recovered perfectly in 42 seconds:<br>
 ![recovered image](https://github.com/Distortions81/GoRecoverBlurText/blob/master/pixelated.png)<br>
 Burred image that was recovered perfectly in 15 seconds:<br>
-![recovered image](https://github.com/Distortions81/GoRecoverBlurText/blob/master/pixelated.png)<br>
+![recovered image](https://github.com/Distortions81/GoRecoverBlurText/blob/master/blurred.png)<br>
