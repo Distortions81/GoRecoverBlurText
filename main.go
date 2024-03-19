@@ -18,7 +18,7 @@ import (
 var exampleString = "SuperSecretTextHere"
 var charSet string = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ "
 var numLetters int = len(exampleString) - 1
-var bAmount int = 10
+var bAmount int = 15
 var iSizeY int = 32
 var iSizeX int = 315
 
