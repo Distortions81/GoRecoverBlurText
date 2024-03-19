@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"image/png"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -46,7 +45,7 @@ func main() {
 	flag.Parse()
 
 	//Read font
-	fdata, err := ioutil.ReadFile("SF-Mono-Font-master/SFMono-Regular.otf")
+	fdata, err := os.ReadFile("SF-Mono-Font-master/SFMono-Regular.otf")
 	if err != nil {
 		log.Fatal(err)
 	}
