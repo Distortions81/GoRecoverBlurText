@@ -18,9 +18,11 @@ import (
 )
 
 var exampleString = "SuperSecretTextHere"
-var charSet string = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ "
 var numLetters int = len(exampleString) - 1
-var bAmount *int
+
+var charSet string = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ "
+
+var blurAmount *int
 var iSizeY int = 32
 var iSizeX int = 315
 
@@ -32,16 +34,18 @@ var testStr string
 var xos int = 0
 var yos int = 0
 
-var strImg *gg.Context
-var src image.Image
+var testImg *gg.Context
+var sourceImg image.Image
 var face font.Face
 var doBlur *bool
 
 func main() {
+	//Handle flags
 	doBlur = flag.Bool("blur", false, "blur instead of pixelate")
-	bAmount = flag.Int("amount", 15, "amount to pixelate or blur")
+	blurAmount = flag.Int("amount", 15, "amount to pixelate or blur")
 	flag.Parse()
 
+	//Read font
 	fdata, err := ioutil.ReadFile("SF-Mono-Font-master/SFMono-Regular.otf")
 	if err != nil {
 		log.Fatal(err)
@@ -57,21 +61,25 @@ func main() {
 		Hinting: font.HintingNone,
 	})
 
-	strImg = gg.NewContext(iSizeX, iSizeY)
-	strImg.SetFontFace(face)
+	//Create new blank image, then create an example source image
+	testImg = gg.NewContext(iSizeX, iSizeY)
+	testImg.SetFontFace(face)
 	makeExampleImage()
 
+	//Save image
 	inputImgData, _ := os.Open("input.png")
 	defer inputImgData.Close()
-	src, _, err = image.Decode(inputImgData)
+	sourceImg, _, err = image.Decode(inputImgData)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	iSizeX = src.Bounds().Size().X
-	iSizeY = src.Bounds().Size().Y
+	//Get image size
+	iSizeX = sourceImg.Bounds().Size().X
+	iSizeY = sourceImg.Bounds().Size().Y
 
+	//Start testing text against it
 	fmt.Println("Scan up.")
 	for i := 0; i < numLetters; i++ {
 		tempHighScore = 1<<63 - 1
@@ -88,6 +96,8 @@ func main() {
 		}
 	}
 
+	//Scan different text combos.
+	//TODO: Lots of replicated code... clean me
 	var oldHighScore uint64 = 1<<63 - 1
 	for {
 		for {
@@ -276,8 +286,6 @@ func main() {
 		}
 
 	}
-
-	fmt.Println("Done", highScoreString, highScore)
 }
 
 func intAbs(input int64) uint64 {
@@ -292,23 +300,24 @@ func pixelate(input *gg.Context, amount int) image.Image {
 	return resize.Resize(uint(input.Width()), uint(input.Height()), shrink, resize.NearestNeighbor)
 }
 
+// Make a image match score
 func testImage(str string, c string) {
-	strImg.SetRGB(1, 1, 1)
-	strImg.Clear()
-	strImg.SetRGB(0, 0, 0)
-	strImg.DrawStringAnchored(str, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
+	testImg.SetRGB(1, 1, 1)
+	testImg.Clear()
+	testImg.SetRGB(0, 0, 0)
+	testImg.DrawStringAnchored(str, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
 	var outImg image.Image
 	if *doBlur {
-		outImg = song2.GaussianBlur(strImg.Image(), float64(*bAmount))
+		outImg = song2.GaussianBlur(testImg.Image(), float64(*blurAmount))
 	} else {
-		outImg = pixelate(strImg, *bAmount)
+		outImg = pixelate(testImg, *blurAmount)
 	}
 
 	var tscore uint64 = 0
 	for x := 0; x < iSizeX; x++ {
 		for y := 0; y < iSizeY; y++ {
 			_, ag, _, _ := outImg.At(x, y).RGBA()
-			_, bg, _, _ := src.At(x, y).RGBA()
+			_, bg, _, _ := sourceImg.At(x, y).RGBA()
 
 			//rdiff := intAbs(int64(ar) - int64(br))
 			gdiff := intAbs(int64(ag) - int64(bg))
@@ -334,17 +343,18 @@ func testImage(str string, c string) {
 	}
 }
 
+// Make an example input image
 func makeExampleImage() {
-	strImg.SetRGB(1, 1, 1)
-	strImg.Clear()
-	strImg.SetRGB(0, 0, 0)
-	strImg.DrawStringAnchored(exampleString, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
+	testImg.SetRGB(1, 1, 1)
+	testImg.Clear()
+	testImg.SetRGB(0, 0, 0)
+	testImg.DrawStringAnchored(exampleString, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
 	numLetters = len(exampleString)
 	var outImg image.Image
 	if *doBlur {
-		outImg = song2.GaussianBlur(strImg.Image(), float64(*bAmount))
+		outImg = song2.GaussianBlur(testImg.Image(), float64(*blurAmount))
 	} else {
-		outImg = pixelate(strImg, *bAmount)
+		outImg = pixelate(testImg, *blurAmount)
 	}
 
 	name := "input.png"
