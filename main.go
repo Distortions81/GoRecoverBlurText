@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/fogleman/gg"
-	"github.com/matsuyoshi30/song2"
+	"github.com/nfnt/resize"
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -18,7 +18,7 @@ import (
 var exampleString = "SuperSecretTextHere"
 var charSet string = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ "
 var numLetters int = len(exampleString) - 1
-var bAmount int = 6
+var bAmount int = 10
 var iSizeY int = 32
 var iSizeX int = 315
 
@@ -31,7 +31,6 @@ var xos int = 0
 var yos int = 0
 
 var strImg *gg.Context
-var strImgBlur image.Image
 var src image.Image
 var face font.Face
 
@@ -90,6 +89,9 @@ func main() {
 				tempHighScore = 1<<63 - 1
 				highScoreChar = ""
 				for _, testChar := range charSet {
+					if i+1 >= len(testStr) {
+						continue
+					}
 					testStr = testStr[:i] + string(testChar) + testStr[i+1:]
 					testImage(testStr, string(testChar))
 				}
@@ -278,18 +280,23 @@ func intAbs(input int64) uint64 {
 	return uint64(input)
 }
 
+func pixelate(input *gg.Context, amount int) image.Image {
+	shrink := resize.Resize(uint(input.Width()/amount), uint(input.Height()/amount), input.Image(), resize.NearestNeighbor)
+	return resize.Resize(uint(input.Width()), uint(input.Height()), shrink, resize.NearestNeighbor)
+}
+
 func testImage(str string, c string) {
 	strImg.SetRGB(1, 1, 1)
 	strImg.Clear()
 	strImg.SetRGB(0, 0, 0)
 	strImg.DrawStringAnchored(str, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
-	//strImgBlur = blur.Gaussian(strImg.Image(), float64(bAmount))
-	strImgBlur = song2.GaussianBlur(strImg.Image(), float64(bAmount))
+	//outImg := song2.GaussianBlur(strImg.Image(), float64(bAmount))
+	outImg := pixelate(strImg, bAmount)
 
 	var tscore uint64 = 0
 	for x := 0; x < iSizeX; x++ {
 		for y := 0; y < iSizeY; y++ {
-			_, ag, _, _ := strImgBlur.At(x, y).RGBA()
+			_, ag, _, _ := outImg.At(x, y).RGBA()
 			_, bg, _, _ := src.At(x, y).RGBA()
 
 			//rdiff := intAbs(int64(ar) - int64(br))
@@ -311,7 +318,7 @@ func testImage(str string, c string) {
 		//Write out the image
 		name := "high-score.png"
 		blah, _ := os.Create(name)
-		png.Encode(blah, strImgBlur)
+		png.Encode(blah, outImg)
 		blah.Close()
 	}
 }
@@ -322,12 +329,11 @@ func makeExampleImage() {
 	strImg.SetRGB(0, 0, 0)
 	strImg.DrawStringAnchored(exampleString, float64(xos), float64(iSizeY)/2+float64(yos), 0, 0.3)
 	numLetters = len(exampleString)
-	//strImg.Scale(0.1, 0.1)
-	//strImgBlur = blur.Gaussian(strImg.Image(), float64(bAmount))
-	strImgBlur = song2.GaussianBlur(strImg.Image(), float64(bAmount))
+	//outImg := song2.GaussianBlur(strImg.Image(), float64(bAmount))
+	outImg := pixelate(strImg, bAmount)
 
 	name := "input.png"
 	blah, _ := os.Create(name)
-	png.Encode(blah, strImgBlur)
+	png.Encode(blah, outImg)
 	blah.Close()
 }
