@@ -1,6 +1,7 @@
 module GoRecoverBlurText
 
-go 1.22.0
+go 1.26.6
+toolchain go1.26.6
 
 require (
 	github.com/fogleman/gg v1.3.0
