@@ -1,6 +1,7 @@
 module GoRecoverBlurText
 
-go 1.17
+go 1.26.6
+toolchain go1.26.6
 
 require (
 	github.com/anthonynsimon/bild v0.13.0
